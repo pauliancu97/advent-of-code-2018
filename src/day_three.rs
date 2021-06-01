@@ -1,3 +1,5 @@
+use std::usize;
+
 use regex::Regex;
 use crate::utils::read_lines;
 
@@ -92,6 +94,22 @@ fn get_shared_tiles(matrix: &Matrix<i32>) -> i32 {
     num_shared_tiles
 }
 
+fn is_rectangle_shared(matrix: &Matrix<i32>, rectangle: &Rectangle) -> bool {
+    let mut is_shared = false;
+    for row in rectangle.top..(rectangle.top + rectangle.height) {
+        for col in rectangle.left..(rectangle.left + rectangle.width) {
+            if matrix.data[row as usize][col as usize] != 1 {
+                is_shared = true;
+            }
+        }
+    }
+    is_shared
+}
+
+fn get_not_shared_rectangle<'a>(matrix: &Matrix<i32>, rectangles: &'a Vec<Rectangle>) -> &'a Rectangle {
+    rectangles.iter().find(|rectangle| !is_rectangle_shared(matrix, rectangle)).unwrap()
+}
+
 pub fn solve_part_one() {
     let input = read_lines("day_three.txt");
     let rectangles = get_rectangles(&input);
@@ -100,4 +118,14 @@ pub fn solve_part_one() {
     update_matrix(&mut matrix, &rectangles);
     let answer = get_shared_tiles(&matrix);
     println!("{}", answer);
+}
+
+pub fn solve_part_two() {
+    let input = read_lines("day_three.txt");
+    let rectangles = get_rectangles(&input);
+    let (rows, cols) = get_fabric_size(&rectangles);
+    let mut matrix = Matrix::new(rows, cols, 0);
+    update_matrix(&mut matrix, &rectangles);
+    let answer = get_not_shared_rectangle(&matrix, &rectangles);
+    println!("{}", answer.id);
 }
