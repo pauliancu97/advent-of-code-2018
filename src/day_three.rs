@@ -1,4 +1,5 @@
 use std::usize;
+use std::cmp::Eq;
 
 use regex::Regex;
 use crate::utils::read_lines;
@@ -32,14 +33,14 @@ impl Rectangle {
     }
 }
 
-struct Matrix<T> {
-    data: Vec<Vec<T>>,
-    rows: usize,
-    cols: usize
+pub struct Matrix<T> {
+    pub data: Vec<Vec<T>>,
+    pub rows: usize,
+    pub cols: usize
 }
 
-impl<T: Clone> Matrix<T> {
-    fn new(rows: usize, cols: usize, default: T) -> Matrix<T> {
+impl<T: Clone + Eq> Matrix<T> {
+    pub fn new(rows: usize, cols: usize, default: T) -> Matrix<T> {
         let mut data: Vec<Vec<T>> = Vec::with_capacity(rows);
         for _ in 0..rows {
             let col: Vec<T> = vec![default.clone(); cols];
@@ -50,6 +51,18 @@ impl<T: Clone> Matrix<T> {
             rows,
             cols
         }
+    }
+
+    pub fn count(&self, value: &T) -> usize {
+        let mut num: usize = 0;
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                if self.data[row][col] == *value {
+                    num += 1;
+                }
+            }
+        }
+        num
     }
 }
 
