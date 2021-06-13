@@ -5,8 +5,9 @@ mod day_four;
 mod day_five;
 mod day_six;
 mod day_seven;
+mod day_eight;
 mod utils;
 
 fn main() {
-    day_seven::solve_part_two();
+    day_eight::solve_part_two();
 }
