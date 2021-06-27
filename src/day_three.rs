@@ -53,6 +53,14 @@ impl<T: Clone + Eq> Matrix<T> {
         }
     }
 
+    pub fn get(&self, row: usize, col: usize) -> T {
+        self.data[row][col].clone()
+    }
+
+    pub fn set(&mut self, row: usize, col: usize, value: T) {
+        self.data[row][col] = value;
+    }
+
     pub fn count(&self, value: &T) -> usize {
         let mut num: usize = 0;
         for row in 0..self.rows {
