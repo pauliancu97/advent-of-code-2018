@@ -57,6 +57,14 @@ impl<T: Clone + Eq> Matrix<T> {
         self.data[row][col].clone()
     }
 
+    pub fn get_ref(&self, row: usize, col: usize) -> &T {
+        &self.data[row][col]
+    }
+
+    pub fn get_mut_ref(&mut self, row: usize, col: usize) -> &mut T {
+        &mut self.data[row][col]
+    }
+
     pub fn set(&mut self, row: usize, col: usize, value: T) {
         self.data[row][col] = value;
     }

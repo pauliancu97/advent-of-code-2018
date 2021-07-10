@@ -9,8 +9,12 @@ mod day_eight;
 mod day_nine;
 mod day_ten;
 mod day_eleven;
+mod day_twelve;
+mod day_thirteen;
+mod day_fourteen;
+mod day_fifteen;
 mod utils;
 
 fn main() {
-    day_eleven::solve_part_two(300, 6548);
+    day_fifteen::solve_part_one();
 }
