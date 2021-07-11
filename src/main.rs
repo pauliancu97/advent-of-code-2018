@@ -16,5 +16,5 @@ mod day_fifteen;
 mod utils;
 
 fn main() {
-    day_fifteen::solve_part_one();
+    day_fifteen::solve_part_two();
 }

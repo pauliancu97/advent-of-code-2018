@@ -80,6 +80,44 @@ impl<T: Clone + Eq> Matrix<T> {
         }
         num
     }
+
+    pub fn count_predicate<P>(&self, predicate: P) -> usize
+        where P: Fn(&T) -> bool
+    {
+        let mut num: usize = 0;
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                if predicate(&self.data[row][col]) {
+                    num += 1;
+                }
+            }
+        }
+        num
+    }
+
+    pub fn map<R, F>(&self, default: R, func: F) -> Matrix<R> 
+        where R: Clone + Eq,
+              F: Fn(&T) -> R
+    {
+        let mut result: Matrix<R> = Matrix::new(self.rows, self.cols, default.clone());
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                result.set(row, col, func(&self.data[row][col]));
+            }
+        }
+        result
+    }
+}
+
+impl<T: Clone> Clone for Matrix<T> {
+    fn clone(&self) -> Matrix<T> {
+        let cloned_data = self.data.clone();
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data: cloned_data
+        }
+    }
 }
 
 fn get_rectangles(input: &Vec<String>) -> Vec<Rectangle> {

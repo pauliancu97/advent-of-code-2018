@@ -1,3 +1,4 @@
+use core::num;
 use std::collections::{HashSet, VecDeque};
 
 use crate::{day_three::Matrix, utils::read_matrix};
@@ -8,7 +9,7 @@ const ELF_CELL_CHAR: char = 'E';
 const GOBLIN_CELL_CHAR: char = 'G';
 const OFFSETS: &[(isize, isize); 4] = &[(-1, 0), (0, -1), (0, 1), (1, 0)];
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 enum UnitType {
     Elf,
     Goblin
@@ -190,7 +191,7 @@ fn get_first_step(dest_row: usize, dest_col: usize, src_row: usize, src_col: usi
     (row, col)
 }
 
-fn update_for_unit(unit: &mut Unit, cave: &mut Matrix<CaveCell>) -> bool {
+fn  update_for_unit(unit: &mut Unit, cave: &mut Matrix<CaveCell>) -> bool {
     let mut found_target = false;
     if let Some(mut enemy_unit) = get_attack(unit, cave) {
         found_target = true;
@@ -240,7 +241,24 @@ fn is_only_one_type_of_unit_left(cave: &Matrix<CaveCell>) -> bool {
     true
 }
 
-fn update_cave(cave: &mut Matrix<CaveCell>) -> usize {
+fn update_cave(cave: &mut Matrix<CaveCell>) -> bool {
+    let mut updated_units_ids: HashSet<usize> = HashSet::new();
+    let mut is_full_round = true;
+    for row in 0..cave.rows {
+        for col in 0..cave.cols {
+            if let CaveCell::UnitCell { mut unit } = cave.get(row, col) {
+                if !updated_units_ids.contains(&unit.id) {
+                    updated_units_ids.insert(unit.id);
+                    is_full_round = is_full_round && !is_only_one_type_of_unit_left(cave);
+                    update_for_unit(&mut unit, cave);
+                }
+            }
+        }
+    }
+    is_full_round
+}
+
+fn update_cave_until_end(cave: &mut Matrix<CaveCell>) -> usize {
     let mut num_turns = 0;
     let mut updated_units_ids: HashSet<usize> = HashSet::new();
     let mut is_done = false;
@@ -261,7 +279,6 @@ fn update_cave(cave: &mut Matrix<CaveCell>) -> usize {
             num_turns += 1;
         }
     }
-    print_cave(cave);
     num_turns
 }
 
@@ -284,6 +301,70 @@ fn print_cave(cave: &Matrix<CaveCell>) {
     }
 }
 
+fn get_num_unit_type(cave: &Matrix<CaveCell>, unit_type: UnitType) -> usize {
+    cave.count_predicate( |cave_cell| {
+        if let CaveCell::UnitCell { unit } = cave_cell {
+            unit.unit_type == unit_type
+        } else {
+            false
+        }
+    })
+}
+
+fn get_num_elves(cave: &Matrix<CaveCell>) -> usize {
+    get_num_unit_type(cave, UnitType::Elf)
+}
+
+fn get_num_goblins(cave: &Matrix<CaveCell>) -> usize {
+    get_num_unit_type(cave, UnitType::Goblin)
+}
+
+fn update_until_first_elf_dies(cave: &mut Matrix<CaveCell>) -> (bool, usize) {
+    let original_num_elves = get_num_elves(cave);
+    let mut num_turns: usize = 0;
+    while original_num_elves == get_num_elves(cave) && get_num_goblins(cave) != 0 {
+        let is_full_round = update_cave(cave);
+        if is_full_round {
+            num_turns += 1;
+        }
+    }
+    (original_num_elves != get_num_elves(cave), num_turns)
+}
+
+fn get_cave_when_elves_win(original_cave: &Matrix<CaveCell>) -> (usize, usize) {
+    let mut result_num_turns: usize = 0;
+    let mut result_sum_hit_points: usize = 0;
+    let mut current_elf_attack_points: usize = 4;
+    let mut is_not_done = true;
+    while is_not_done {
+        let mut current_cave = original_cave.map(CaveCell::EmptyCell, |cave_cell|{
+            if let CaveCell::UnitCell { unit } = cave_cell {
+                if unit.unit_type == UnitType::Elf {
+                    CaveCell::UnitCell {
+                        unit: Unit {
+                            attack_points: current_elf_attack_points,
+                            ..unit.clone()
+                        }
+                    }
+                } else {
+                    cave_cell.clone()
+                }
+            } else {
+                cave_cell.clone()
+            }
+        });
+        let (has_elf_died , num_turns) = update_until_first_elf_dies(&mut current_cave);
+        if !has_elf_died {
+            is_not_done = false;
+            result_num_turns = num_turns;
+            result_sum_hit_points = get_sum_remaining_units(&current_cave);
+        } else {
+            current_elf_attack_points += 1;
+        }
+    }
+    (result_num_turns, result_sum_hit_points)
+}
+
 fn get_sum_remaining_units(cave: &Matrix<CaveCell>) -> usize {
     let mut sum: usize = 0;
     for row in 0..cave.rows {
@@ -299,8 +380,16 @@ fn get_sum_remaining_units(cave: &Matrix<CaveCell>) -> usize {
 pub fn solve_part_one() {
     let char_matrix = read_matrix("day_fifteen.txt");
     let mut cave = get_cave(&char_matrix);
-    let num_turns = update_cave(&mut cave);
+    let num_turns = update_cave_until_end(&mut cave);
     let sum_hit_points = get_sum_remaining_units(&cave);
+    println!("num_turns = {}, sum_hit_points= {}", num_turns, sum_hit_points);
+    println!("{}", num_turns * sum_hit_points);
+}
+
+pub fn solve_part_two() {
+    let char_matrix = read_matrix("day_fifteen.txt");
+    let cave = get_cave(&char_matrix);
+    let (num_turns, sum_hit_points) = get_cave_when_elves_win(&cave);
     println!("num_turns = {}, sum_hit_points= {}", num_turns, sum_hit_points);
     println!("{}", num_turns * sum_hit_points);
 }
