@@ -1,8 +1,8 @@
 use std::iter::once;
 use lazy_static::lazy_static;
 use regex::Regex;
-
 use crate::utils::read_lines;
+use itertools::Itertools;
 
 struct SampleInput {
     before_registers_string: String,
@@ -301,6 +301,48 @@ fn get_num_of_instructions_matching_samples(sample: &Sample, instructions: &Vec<
         .count()
 }
 
+fn get_instruction_perfect_matched_for_sample(sample: &Sample, instructions: &Vec<Box<dyn Instruction>>) -> Option<(usize, usize)> {
+    let matching_instructions: Vec<_> = instructions.iter()
+        .enumerate()
+        .filter(|&(_, instruction)| is_instruction_matching_sample(sample, instruction))
+        .map(|(index, _)| index)
+        .collect();
+    if matching_instructions.len() == 1 {
+        Some((sample.instruction[0] as usize, matching_instructions[0]))
+    } else {
+        None
+    }
+}
+
+fn get_ordered_instructions(samples: &Vec<Sample>, instructions: &mut Vec<Box<dyn Instruction>>) -> Vec<Box<dyn Instruction>> {
+    let mut ordered_instructions: Vec<Box<dyn Instruction>> = Vec::with_capacity(instructions.len());
+    for _ in 0..instructions.len() {
+        ordered_instructions.push(Box::new(AddRegister));
+    }
+    let mut is_not_done = true;
+    while is_not_done {
+        let perfect_matched_instructions: Vec<_> = samples.iter()
+            .filter_map(|sample| get_instruction_perfect_matched_for_sample(sample, &instructions))
+            .unique()
+            .collect();
+        for (index, &(op_code, instruction_index)) in perfect_matched_instructions.iter().enumerate() {
+            ordered_instructions[op_code] = instructions.remove(instruction_index - index);
+        }
+        is_not_done = perfect_matched_instructions.len() != 0;
+    }
+    ordered_instructions
+}
+
+fn get_register_after_computation(instructions: &Vec<Box<dyn Instruction>>, program: &Vec<Vec<i64>>) -> i64 {
+    let mut registers: Vec<i64> = vec![0, 0, 0, 0];
+    for program_instruction in program {
+        let instr = &instructions[program_instruction[0] as usize];
+        let new_registers = instr.get_registers_values(&registers, program_instruction);
+        registers = new_registers;
+    }
+    registers[0]
+}
+
 pub fn solve_part_one() {
     let instructions: Vec<Box<dyn Instruction>> = vec![
         Box::new(AddRegister),
@@ -326,5 +368,35 @@ pub fn solve_part_one() {
         .map(|sample| get_num_of_instructions_matching_samples(sample, &instructions))
         .filter(|&count| count >= 3)
         .count();
+    println!("{}", answer);
+}
+
+pub fn solve_part_two() {
+    let mut instructions: Vec<Box<dyn Instruction>> = vec![
+        Box::new(AddRegister),
+        Box::new(AddImmediate),
+        Box::new(MultiplyRegister),
+        Box::new(MultiplyImmediate),
+        Box::new(BitwiseAndRegister),
+        Box::new(BitwiseAndImmediate),
+        Box::new(BitwiseOrRegister),
+        Box::new(BitwiseOrImmediate),
+        Box::new(SetRegister),
+        Box::new(SetImmediate),
+        Box::new(GreaterImmediateRegister),
+        Box::new(GreaterRegisterImmediate),
+        Box::new(GreaterRegisterRegister),
+        Box::new(EqualImmediateRegister),
+        Box::new(EqualRegisterImmediate),
+        Box::new(EqualRegisterRegister)
+    ];
+    let lines = read_lines("day_sixteen.txt");
+    let program_lines = read_lines("day_sixteen_program.txt");
+    let samples = get_samples(&lines);
+    let program_instructions: Vec<_> = program_lines.iter()
+        .map(|string| get_space_delimited_nums(string))
+        .collect();
+    let ordered_instructions = get_ordered_instructions(&samples, &mut instructions);
+    let answer = get_register_after_computation(&ordered_instructions, &program_instructions);
     println!("{}", answer);
 }
