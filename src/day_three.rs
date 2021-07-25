@@ -39,6 +39,24 @@ pub struct Matrix<T> {
     pub cols: usize
 }
 
+impl<T: Eq + Clone> PartialEq for Matrix<T> {
+    fn eq(&self, other: &Matrix<T>) -> bool {
+        if self.rows == other.rows && self.cols == other.cols {
+            let mut is_equal = true;
+            for row in 0..self.rows {
+                for col in 0..self.cols {
+                    if self.get(row, col) != other.get(row, col) {
+                        is_equal = false;
+                    }
+                }
+            }
+            is_equal
+        } else {
+            false
+        }
+    }
+}
+
 impl<T: Clone + Eq> Matrix<T> {
     pub fn new(rows: usize, cols: usize, default: T) -> Matrix<T> {
         let mut data: Vec<Vec<T>> = Vec::with_capacity(rows);
