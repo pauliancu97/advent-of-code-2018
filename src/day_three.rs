@@ -1,3 +1,4 @@
+use std::ops::Range;
 use std::usize;
 use std::cmp::Eq;
 
@@ -30,6 +31,56 @@ impl Rectangle {
                 height
             }
         )
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct MatrixRange {
+    pub row_range: Range<usize>,
+    pub col_range: Range<usize>
+}
+
+impl MatrixRange {
+    pub fn half_horizontal(&self) -> (MatrixRange, MatrixRange) {
+        (
+            MatrixRange {
+                row_range: 0..(self.row_range.len() / 2),
+                col_range: self.col_range.clone()
+            },
+            MatrixRange {
+                row_range: (self.row_range.len() / 2)..(self.row_range.len()),
+                col_range: self.col_range.clone()
+            }
+        )
+    }
+
+    pub fn half_vertical(&self) -> (MatrixRange, MatrixRange) {
+        (
+            MatrixRange {
+                row_range: self.row_range.clone(),
+                col_range: 0..(self.col_range.len() / 2)
+            },
+            MatrixRange {
+                row_range: self.row_range.clone(),
+                col_range: (self.col_range.len() / 2)..(self.col_range.len())
+            }
+        )
+    }
+
+    pub fn rows(&self) -> usize {
+        self.row_range.len()
+    }
+
+    pub fn cols(&self) -> usize {
+        self.col_range.len()
+    }
+
+    pub fn first_row(&self) -> usize {
+        self.row_range.start
+    }
+
+    pub fn first_col(&self) -> usize {
+        self.col_range.start
     }
 }
 
@@ -124,6 +175,13 @@ impl<T: Clone + Eq> Matrix<T> {
             }
         }
         result
+    }
+
+    pub fn get_range(&self) -> MatrixRange {
+        MatrixRange {
+            row_range: 0..self.rows,
+            col_range: 0..self.cols
+        }
     }
 }
 

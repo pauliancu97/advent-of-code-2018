@@ -29,11 +29,11 @@ impl Sample {
     }
 }
 
-trait Instruction {
+pub trait Instruction {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64>;
 }
 
-struct AddRegister;
+pub struct AddRegister;
 
 impl Instruction for AddRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -43,7 +43,7 @@ impl Instruction for AddRegister {
     }
 }
 
-struct AddImmediate;
+pub struct AddImmediate;
 
 impl Instruction for AddImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -53,7 +53,7 @@ impl Instruction for AddImmediate {
     }
 }
 
-struct MultiplyRegister;
+pub struct MultiplyRegister;
 
 impl Instruction for MultiplyRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -63,7 +63,7 @@ impl Instruction for MultiplyRegister {
     }
 }
 
-struct MultiplyImmediate;
+pub struct MultiplyImmediate;
 
 impl Instruction for MultiplyImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -73,7 +73,7 @@ impl Instruction for MultiplyImmediate {
     }
 }
 
-struct BitwiseAndRegister;
+pub struct BitwiseAndRegister;
 
 impl Instruction for BitwiseAndRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -83,7 +83,7 @@ impl Instruction for BitwiseAndRegister {
     }
 }
 
-struct BitwiseAndImmediate;
+pub struct BitwiseAndImmediate;
 
 impl Instruction for BitwiseAndImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -93,7 +93,7 @@ impl Instruction for BitwiseAndImmediate {
     }
 }
 
-struct BitwiseOrRegister;
+pub struct BitwiseOrRegister;
 
 impl Instruction for BitwiseOrRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -103,7 +103,7 @@ impl Instruction for BitwiseOrRegister {
     }
 }
 
-struct BitwiseOrImmediate;
+pub struct BitwiseOrImmediate;
 
 impl Instruction for BitwiseOrImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -113,7 +113,7 @@ impl Instruction for BitwiseOrImmediate {
     }
 }
 
-struct SetRegister;
+pub struct SetRegister;
 
 impl Instruction for SetRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -123,7 +123,7 @@ impl Instruction for SetRegister {
     }
 }
 
-struct SetImmediate;
+pub struct SetImmediate;
 
 impl Instruction for SetImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -133,7 +133,7 @@ impl Instruction for SetImmediate {
     }
 }
 
-struct GreaterImmediateRegister;
+pub struct GreaterImmediateRegister;
 
 impl Instruction for GreaterImmediateRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -150,7 +150,7 @@ impl Instruction for GreaterImmediateRegister {
 }
 
 
-struct GreaterRegisterImmediate;
+pub struct GreaterRegisterImmediate;
 
 impl Instruction for GreaterRegisterImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -166,7 +166,7 @@ impl Instruction for GreaterRegisterImmediate {
     }
 }
 
-struct GreaterRegisterRegister;
+pub struct GreaterRegisterRegister;
 
 impl Instruction for GreaterRegisterRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -182,7 +182,7 @@ impl Instruction for GreaterRegisterRegister {
     }
 }
 
-struct EqualImmediateRegister;
+pub struct EqualImmediateRegister;
 
 impl Instruction for EqualImmediateRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -199,7 +199,7 @@ impl Instruction for EqualImmediateRegister {
 }
 
 
-struct EqualRegisterImmediate;
+pub struct EqualRegisterImmediate;
 
 impl Instruction for EqualRegisterImmediate {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {
@@ -215,7 +215,7 @@ impl Instruction for EqualRegisterImmediate {
     }
 }
 
-struct EqualRegisterRegister;
+pub struct EqualRegisterRegister;
 
 impl Instruction for EqualRegisterRegister {
     fn get_registers_values(&self, original_registers: &[i64], instruction: &[i64]) -> Vec<i64> {

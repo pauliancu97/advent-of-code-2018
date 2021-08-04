@@ -1,5 +1,6 @@
-use crate::{day_three::Matrix, utils::read_matrix};
-use std::{fmt, thread::current};
+use crate::{day_three::{Matrix, MatrixRange}, utils::read_matrix};
+use core::f64;
+use std::{fmt, sync::mpsc::{Receiver, Sender, channel}, thread::{self, JoinHandle, current}};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Acre {
@@ -136,10 +137,123 @@ fn get_acres_matrix_after_large_iterations(matrix: &Matrix<Acre>, num_iterations
     current_matrix
 }
 
+fn get_matrix_ranges(matrix_range: &MatrixRange, num: usize) -> Vec<MatrixRange> {
+    let mut current_matrix_ranges: Vec<MatrixRange> = Vec::new();
+    current_matrix_ranges.push(matrix_range.clone());
+    for index in 1..=num {
+        let mut updated_matrix_ranges: Vec<MatrixRange> = Vec::new();
+        for current_matrix_range in &current_matrix_ranges {
+            let (first_split, second_split) = if index % 2 == 1 {
+                current_matrix_range.half_horizontal()
+            } else {
+                current_matrix_range.half_vertical()
+            };
+            updated_matrix_ranges.push(first_split);
+            updated_matrix_ranges.push(second_split);
+        }
+        current_matrix_ranges = updated_matrix_ranges;
+    }
+    current_matrix_ranges
+}
+
+fn get_updated_matrix_in_range(matrix: &Matrix<Acre>, matrix_range: &MatrixRange) -> Matrix<Acre> {
+    let mut updated_matrix: Matrix<Acre> = Matrix::new(matrix_range.rows(), matrix_range.cols(), Acre::Open);
+    for row in matrix_range.row_range.clone() {
+        for col in matrix_range.col_range.clone() {
+            updated_matrix.set(
+                row - matrix_range.first_row(),
+                col - matrix_range.first_col(),
+                matrix.get(row, col)
+            );
+        }
+    }
+    for row in matrix_range.row_range.clone() {
+        for col in matrix_range.col_range.clone() {
+            let (_, num_tree_acres, num_lumberyard_acres) = get_adjacent_acres_info(
+                matrix, 
+                row, 
+                col
+            );
+            match matrix.get(row, col) {
+                Acre::Open => {
+                    if num_tree_acres >= 3 {
+                        updated_matrix.set(row - matrix_range.first_row(), col - matrix_range.first_col(), Acre::Tree);
+                    }
+                },
+                Acre::Tree => {
+                    if num_lumberyard_acres >= 3 {
+                        updated_matrix.set(row - matrix_range.first_row(), col - matrix_range.first_col(), Acre::Lumberyard);
+                    }
+                },
+                Acre::Lumberyard => {
+                    if !(num_lumberyard_acres >= 1 && num_tree_acres >= 1) {
+                        updated_matrix.set(row - matrix_range.first_row(), col - matrix_range.first_col(), Acre::Open);
+                    }
+                },
+            }
+        }
+    }
+    updated_matrix
+}
+
+fn replace_matrix(matrix: &mut Matrix<Acre>, matrix_range: &MatrixRange, partial_matrix: &Matrix<Acre>) {
+    for row in matrix_range.row_range.clone() {
+        for col in matrix_range.col_range.clone() {
+            let value = partial_matrix.get(row - matrix_range.first_row(), col - matrix_range.first_col());
+            matrix.set(row, col, value);
+        }
+    }
+}
+
+fn get_updated_matrix_with_threads(matrix: &Matrix<Acre>, num_threads: usize) -> Matrix<Acre> {
+    let mut updated_matrix = matrix.clone();
+    let num = ((num_threads as f64).ln() / (2.0f64).ln()).floor() as usize;
+    let mut matrix_ranges = get_matrix_ranges(&matrix.get_range(), num);
+    let (aux_tx, rx): (Sender<(MatrixRange, Matrix<Acre>)>, Receiver<(MatrixRange, Matrix<Acre>)>) = 
+        channel();
+    let mut threads_handle = Vec::new();
+    for _ in 0..num_threads {
+        let tx = aux_tx.clone();
+        let original_matrix = matrix.clone();
+        let matrix_range = matrix_ranges.remove(0);
+        let join_handle = thread::spawn(move || {
+            let updated_matrix = get_updated_matrix_in_range(&original_matrix, &matrix_range);
+            tx.send((matrix_range, updated_matrix)).unwrap();
+        });
+        threads_handle.push(join_handle);
+    }
+    for _ in 0..num_threads {
+        let (matrix_range, partial_matrix) = rx.recv().unwrap();
+        replace_matrix(&mut updated_matrix, &matrix_range, &partial_matrix);
+    }
+    for handle in threads_handle {
+        handle.join().unwrap();
+    }
+    updated_matrix
+}
+
+fn get_acres_matrix_after_iterations_with_threads(matrix: &Matrix<Acre>, num_iterations: usize, num_threads: usize) -> Matrix<Acre> {
+    let mut current_matrix = matrix.clone();
+    for _ in 0..num_iterations {
+        current_matrix = get_updated_matrix_with_threads(&current_matrix, num_threads);
+    }
+    current_matrix
+}
+
 pub fn solve_part_one(num_iterations: usize) {
     let char_matrix = read_matrix("day_eightteen.txt");
     let matrix = get_acres_matrix(&char_matrix);
     let final_matrix = get_acres_matrix_after_iterations(&matrix, num_iterations);
+    let num_tree_acres = final_matrix.count(&Acre::Tree);
+    let num_lumberyard_acres = final_matrix.count(&Acre::Lumberyard);
+    let answer = num_tree_acres * num_lumberyard_acres;
+    println!("{}", answer);
+}
+
+pub fn solve_part_one_with_channels(num_iterations: usize, num_threads: usize) {
+    let char_matrix = read_matrix("day_eightteen.txt");
+    let matrix = get_acres_matrix(&char_matrix);
+    let final_matrix = get_acres_matrix_after_iterations_with_threads(&matrix, num_iterations, num_threads);
     let num_tree_acres = final_matrix.count(&Acre::Tree);
     let num_lumberyard_acres = final_matrix.count(&Acre::Lumberyard);
     let answer = num_tree_acres * num_lumberyard_acres;
