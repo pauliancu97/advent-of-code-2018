@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, i64, rc::Rc};
+use std::{collections::{HashMap, HashSet}, i64};
 
 use crate::{day_three::Matrix, utils::read_lines};
 

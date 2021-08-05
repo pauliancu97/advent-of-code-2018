@@ -183,6 +183,16 @@ impl<T: Clone + Eq> Matrix<T> {
             col_range: 0..self.cols
         }
     }
+
+    pub fn expand(&mut self, default: T) {
+        for row in &mut self.data {
+            row.push(default.clone());
+        }
+        let new_row = vec![default.clone(); self.cols + 1];
+        self.data.push(new_row);
+        self.rows += 1;
+        self.cols += 1;
+    }
 }
 
 impl<T: Clone> Clone for Matrix<T> {
