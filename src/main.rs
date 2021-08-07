@@ -19,8 +19,9 @@ mod day_eightteen;
 mod day_nineteen;
 mod day_twenty;
 mod day_twentytwo;
+mod day_twentythree;
 mod utils;
 
 fn main() {
-    day_twentytwo::solve_part_two(709, 14, 6084);
+    day_twentythree::solve_part_two();
 }
